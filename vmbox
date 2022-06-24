@@ -1,0 +1,324 @@
+#!/usr/bin/env bash
+p1="$1"
+p2="$2"
+p3="$3"
+function debug() {
+	if [[ "$p1" == "-d" || "$p1" == "--debug" || "$p2" == "-d" || "$p2" == "--debug" || "$p3" == "-d" || "$p3" == "--debug" ]]; then
+		echo " $(tput setaf 7)$(tput bold)debug $(tput sgr0)$(tput setaf 7)$@$(tput sgr0)"
+	fi
+}
+#function cc() {
+#	debug echo "{cc func}thing to colorize: $1"
+#	if [[ "$(echo $1 | cut -c -1)" == "&" ]]; then
+#		case "$(echo $1 | cut -c -2 | cut -c 1-)" in
+#			"1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0") tput setaf $(echo $1 | cut -c -2 | cut -c 1-) ;;
+#			"r") word+='$(tput sgr0)' ;;
+#			"u") word+='$(tput smul)' ;;
+#			"e") word+='$(tput rev)' ;;
+#			"b") word+='$(tput dim)' ;;
+#			"l") word+='$(tput bold)' ;;
+#		esac
+#	else
+#		word+="$(echo $1 | cut -c -1)"
+#	fi
+#}
+#function cc() {
+#	word=""
+#	for i in $@; do
+#		if [[ "$(echo $1 | cut -c -1)" == "&" ]]; then
+#			case "$(echo $1 | cut -c -2 | cut -c 1-)" in
+#				"1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0") tput setaf $(echo $1 | cut -c -2 | cut -c 1-) ;;
+#				"r") word+='$(tput sgr0)' ;;
+#				"u") word+='$(tput smul)' ;;
+#				"e") word+='$(tput rev)' ;;
+#				"b") word+='$(tput dim)' ;;
+#				"l") word+='$(tput bold)' ;;
+#	       esac
+#		else
+#			word+="$(echo $1 | cut -c -1)"
+#		fi
+#	done
+#	printf "${word}"
+#}
+red="$(tput setaf 196)"
+orange="$(tput setaf 166)"
+yellow="$(tput setaf 136)"
+green="$(tput setaf 64)"
+blue="$(tput setaf 33)"
+lightblue="$(tput setaf 51)"
+cyan="$(tput setaf 37)"
+magenta="$(tput setaf 125)"
+violet="$(tput setaf 61)"
+gray="$(tput setaf 242)"
+r="$(tput sgr0)"  # reset
+u="$(tput smul)"  # underline
+e="$(tput rev)"   # reverse
+l="$(tput bold)"  # bold
+b="$(tput dim)"   # blink
+#function cecho() { # cecho stands for: color echo
+	#number="1"
+#	number2="$(echo $test | wc -c)"
+#	while [ 1 ]; do
+#	▹   if [[ "$number" == "1" ]]; then
+#	▹   ▹   word+="$(echo $test | cut -c -1)"
+#	▹   else
+#	▹   ▹   word+="$(echo $test | cut -c -$number | cut -c $(($(echo $number2) + 1)))"-
+#	▹   fi·
+#	▹   number="$(( $number + 1 ))"
+#		number2="$(( $number - 1 ))"
+#	▹   if [[ "$number" == "$(( $(echo $test | wc -c) ))" ]]; then
+#	▹   ▹   break
+#	▹   fi
+#	done
+#	unset number1
+#	unset number2
+#	number="1"
+#	number2="$(echo $test | wc -c)"
+#	debug echo "{cecho func}sentence to colorize: $1"
+#	while [ 1 ]; do
+#		if [[ "$number" == "1" ]]; then
+#			cc "$(echo $1 | cut -c -2)"
+#			debug echo "{cecho func}[letter nr.$number] $(echo $1 | cut -c -2)"
+#			#word+="$(echo $1 | cut -c -2)"
+#		else
+#			cc "$(echo $1 | cut -c -$number | cut -c $number2-)"
+#			debug echo "{cecho func}[letter nr.$number] $(echo $1 | cut -c -2)"
+#			#word+="$(echo $1 | cut -c -$number | cut -c $number2-)"
+#		fi
+#		number="$(( $number + 1 ))"
+#		debug echo "{cecho func}variable number: $number"
+#		number2="$(( $number - 1 ))"
+#		debug echo "{cecho func}variable number2: $number2"
+#		if [[ "$number" == "$(( $(echo $1 | wc -c) ))" ]]; then
+#			break
+#		fi
+#	done
+#	echo "$word"
+#	unset word
+#	unset number1
+#	unset number2
+#}
+function vbhelp() { # vbhelp stands for: vmbox help
+	if [[ "$1" == "-u" ]]; then
+		echo "${red}command not found: $l$p1$r$red; ${lightblue}avaiable commands:$r"
+	else
+		echo "${lightblue}Avaiable commands:$r"
+	fi
+	echo -e "  help - See avaiable commands\n  manual/man - See manual of specified VMBox command\n  create - Create specified VM\n  start - Start specified VM\n  stop - Stop specified VM\n  vrde - Enable VRDE for specified VM\n  all_list - List all virtual machines\n  list/ls - List all running virtual machines\n  unlist - Remove specified virtual machine from list"
+}
+function rne() { # rne stands for: require not empty
+	if [[ "$1" == "" ]]; then
+			echo "${red}parameter required: $b\$$RNE_PARAM ${gray}${l}| ${r}manual: ${blue}$0 manual $RNE_MAN"
+			unset RNE_MAN
+			exit 1
+	fi
+	unset param
+	unset RNE_MAN
+	return 0
+}
+function cr() {
+	echo "$green $@$r"
+}
+function print_centered {
+     [[ $# == 0 ]] && return 1
+
+     declare -i TERM_COLS="$(tput cols)"
+     declare -i str_len="${#1}"
+     [[ $str_len -ge $TERM_COLS ]] && {
+          echo "$1";
+          return 0;
+     }
+
+     declare -i filler_len="$(( (TERM_COLS - str_len) / 2 ))"
+     [[ $# -ge 2 ]] && ch="${2:0:1}" || ch=" "
+     filler=""
+     for (( i = 0; i < filler_len; i++ )); do
+          filler="${filler}${ch}"
+     done
+
+     printf "%s%s%s" "$filler" "$1" "$filler"
+     [[ $(( (TERM_COLS - str_len) % 2 )) -ne 0 ]] && printf "%s" "${ch}"
+     printf "\n"
+
+     return 0
+}
+function error() {
+	print_centered "$red$@ $gray[exiting with code 1]$r"
+	exit 1
+}
+function warn() {
+	echo "${yellow}${b}WARN: $r$gray$@$r"
+}
+function startman() {
+	print_centered "VMBOX COMMANDS MANUAL - $1"
+	echo
+}
+case $1 in
+	"" | "help") vbhelp ;;
+	"manual" | "man")
+		RNE_MAN="man" RNE_PARAM="2" rne "$2"
+		startman "$2"
+		case $2 in
+			"man" | "manual")
+				echo " $2 [command to get help about]
+    Examples:
+      $2 create
+       + What this do?
+       = Turn on manual of command create for you
+"
+				if [[ "$2" == "man" ]]; then
+                    echo "    Name stands for: manual
+    Aliases:
+      - manual"
+				elif [[ "$2" == "manual" ]]; then
+					echo "    Is an alias of: man"
+				fi
+			;;
+			"create")
+				echo " create [vm mame] [iso/img filepath - to leave empty provide: none] [os type] [memory - optional] [vram - optional]
+	Examples:
+      create \"Debian 10\" ~/debian10.iso \"Debian_64\"
+       + What this do?
+       = Create virtual machine named \"Debian 10\" with first CD-ROM/Floppy thats path is ~/debian10.iso where you will install operating system Debian 64 bit
+      create \"My Windows\" ~/Windows10-21H2.iso \"Windows_10\" 2048 512
+       + What this do?
+       = Create virtual machine named \"My Windows\" with first CD-ROM/Floppy thats path is ~/Windows10-21H2.iso where you will install operating system Windows 10 with memory 2048 and VRAM 512"
+			;;
+			"start")
+				echo " start [vm name]
+    Examples:
+      start \"My Windows\"
+       + What this do?
+       = Start virtual machine named [vm name]"
+			;;
+			"stop")
+				echo " stop [vm name]
+    Examples:
+      stop \"My Windows\"
+       + What this do?
+       = Stop virtual machine named [vm name]"
+			;;
+			"vrde")
+				echo " vrde [vm name]
+    Examples:
+      vrde \"Debian 10\"
+       + What this do?
+       = Enable VRDE for virtual machine named [vm name]"
+			;;
+			"all_list")
+				echo " all_list
+    Examples:
+      all_list
+      + What this do?
+      = List all virtual machines."
+			;;
+			"ls" | "list")
+				echo " $2
+    Examples:
+      $2
+      + What this do?
+      = List all running virtual machines.
+"
+				if [[ "$2" == "ls" ]]; then
+					echo "    Name stands for: list
+    Aliases:
+      - list"
+				elif [[ "$2" == "list" ]]; then
+					echo "    Is an alias of: ls"
+				fi
+			;;
+			"unlist")
+				echo " unlist [vm name]
+    Examples:
+      unlist \"Debian 10\"
+      + What this do?
+      = Remove virtual machine \"Debian 10\" from list, so you cannot manage it in future unless you add it."
+			;;
+			*)
+				echo "Command \"$2\" not found."
+		esac
+	;;
+	"all_list")
+		echo "All virtual machines:"
+		VBoxManage list vms
+	;;
+	"ls" | "list")
+		echo "Running virtual machines:"
+		VBoxManage list runningvms
+	;;
+	"unlist")
+		RNE_MAN="unlist" RNE_PARAM="2" rne "$2"
+		vboxmanage unregister "$2"
+	;;
+	"create")
+		RNE_MAN="create" RNE_PARAM="2" rne "$2"
+		RNE_MAN="create" RNE_PARAM="3" rne "$3"
+		RNE_MAN="create" RNE_PARAM="4" rne "$4"
+		if [[ "$3" != "none" ]]; then
+			if [[ -f "$3" ]]; then
+				if [[ "${3#${3%????}}" == ".iso" || "${3#${3%????}}" == ".img" ]]; then
+					cr "• file $3 exists and is .iso or .img, entering its as a CD-ROM/Floppy to vm with its files..."
+				else
+					error "FILE $3 IS NOT .iso NOR .img, UNKOWN FILETYPE!"
+				fi
+			else
+				warn "file $3 does not exists, making virtual machine without arleady entered CD-ROM or Floppy!"
+			fi
+		fi
+		VBoxManage createvm --name "$2" --ostype "$3" --register --basefolder "$HOME/Library/Application Support/NoxAppPlayer/BignoxVMS/$(echo $2 | tr -d ' ')"
+		cr "• setupping network settings for virtual machine..."
+		VBoxManage modifyvm "$2" --nic1 nat
+		cr "• setupping memory settings for virtual machine..."
+		VBoxManage modifyvm "$2" --ioapic on
+		if [[ "$5" == "" ]]; then
+			warn "memory not specified, defaulting to 1024"
+			m="1024"
+		else
+			m="$5"
+		fi
+		if [[ "$6" == "" ]]; then
+			warn "vram not specified, defaulting to 256"
+			v="256"
+		else
+			v="$6"
+		fi
+		VBoxManage modifyvm "$2" --memory $m --vram $v
+		VBoxManage createhd --filename "$HOME/Library/Application Support/NoxAppPlayer/BignoxVMS/$(echo $2 | tr -d ' ')/$(echo $2 | tr -d ' ')_DISK.vdi" --size 25000 --format VDI
+		VBoxManage storagectl "$2" --name "SATA Controller" --add sata --controller IntelAhci
+		VBoxManage storageattach "$2" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$HOME/Library/Application Support/NoxAppPlayer/BingnoxVMS/$(_echo $2 | tr -d ' ')/$(echo $2 | tr -d ' ')_DISK.vdi"
+		VBoxManage storagectl "$2" --name "IDE Controller" --add ide --controller PIIX4
+		if [[ "$3" != "" && -f "$3" ]]; then
+			VBoxManage storageattach "$2" --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium $3
+			VBoxManage modifyvm "$2" --boot1 dvd --boot2 disk --boot3 none --boot4 none 
+		fi
+		echo
+		cr "Virtual machine \"$2\" created succesfully. Its path is: \"$HOME/Library/Application Support/NoxAppPlayer/BignoxVMS/$(echo $2 | tr -d ' ')\""
+		cr "To start it, use: $0 start $2"
+	;;
+	"additions")
+		RNE_MAN="additions" RNE_PARAM="2" rne "$2"
+		VBoxManage guestcontrol updateadditions "$2" --source /usr/share/virtualbox/VBoxGuestAdditions.iso --verbose
+	;;
+	"start")
+		RNE_MAN="start" RNE_PARAM="2" rne "$2"
+		echo "To stop this VM, use: $0 stop $2"
+		VBoxHeadless --startvm "$2"
+	;;
+	"stop")
+		RNE_MAN="stop" RNE_PARAM="2" rne "$2"
+		echo "To start this VM again, use: $0 start $2"
+		vboxmanage controlvm "$2" acpipowerbutton
+	;;
+	"vrde")
+		RNE_MAN="vrde" RNE_PARAM="2" rne "$2"
+		VBoxManage modifyvm "$2" --vrde on
+		if [[ "$3" == "" ]]; then
+			warn "VRDE port not specified, defaulting to 10001"
+			port="10001"
+		else
+			port="$3"
+		fi
+		VBoxManage modifyvm "$2" --vrdemulticon on --vrdeport $port
+	;;
+	*) vbhelp -u ;;
+esac
